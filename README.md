@@ -10,7 +10,7 @@ The Short Link Creator is capable to create short link with one click, it genera
 Application creates short links (like bit.ly or cutt.ly). 
 
 * Shortened link identifiers are unique strings of 5-9 alphanumeric characters
-* Code is in MVC design patterns
+* Code is in MVC design pattern
 * Uses REST API
 * User can enter vanity URLs
 * Users can see number of users redirected by specific URL
