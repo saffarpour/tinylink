@@ -114,8 +114,8 @@ you can see a live version of website in
 ## Libraries
 
 Two libraries have been used in this application
-W3CSS
- https://www.w3schools.com/css/default.asp
-PHP QR Code
- https://sourceforge.net/projects/phpqrcode/files/
+W3CSS\
+ https://www.w3schools.com/css/default.asp\
+PHP QR Code\
+ https://sourceforge.net/projects/phpqrcode/files/\
 
