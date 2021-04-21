@@ -1,0 +1,11 @@
+#---------------Turn Rewrite Engine On
+RewriteEngine On
+
+RewriteRule ^view/([0-9a-zA-Z]+) index.php?job=view&code=$1 [NC,L]
+
+RewriteCond %{REQUEST_FILENAME} !-f 
+RewriteCond %{REQUEST_FILENAME} !-d
+
+RewriteRule . /tinylink/index.php/ [L]
+#RewriteRule . /index.php/ [L]
+

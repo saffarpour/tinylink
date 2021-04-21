@@ -1,0 +1,458 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta http-equiv="content-type" content="text/html; charset=UTF-8">
+    <title>Tiny Link</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="A link shortener written as a test by Reza Saffarpour.">
+
+    <link rel="stylesheet" href="<?php echo Config::getResourceAddress('w3.css'); ?>">
+    <link rel="stylesheet" href="<?php echo Config::getResourceAddress('css.css'); ?>">
+    <link rel="icon" type="image/png" href="<?php echo Config::getResourceAddress('tinylink-favicon.png'); ?>">
+
+    <style>
+      body,h1,h2,h3,h4,h5 {font-family: "Poppins", sans-serif}
+      body {font-size:16px;}
+      .w3-half img{margin-bottom:-6px;margin-top:16px;opacity:0.8;cursor:pointer}
+      .w3-half img:hover{opacity:1}
+      .valid-url{}
+      .valid-preferred-url{}
+      div.rz-word-wrap {word-wrap: break-word;}
+    </style>
+    <style type="text/css">#tryitLeaderboard ~ #container { top: 40px!important; }
+
+      #tryitLeaderboard ~ .trytopnav { top: 0!important; }</style>
+  </head>
+  <body onload="checkAllCodes()">
+
+    <!-- !PAGE CONTENT! -->
+    <div class="w3-main" style="margin-left:40px;margin-right:40px">
+
+      <!-- Header -->
+      <div class="w3-container" style="margin-top:90px" id="showcase">
+        <img src="<?php echo Config::getResourceAddress('Link_1-2-4.png'); ?>" alt="TINY LINK APP" style="width:100%">
+
+        <div class="w3-container" id="packages" style="margin-top:75px">
+          <div class="w3-panel w3-leftbar w3-border-indigo w3-text-blue">
+            <h1 class="w3-xxlarge w3-text-indigo"><b>Shorten Link Here</b></h1>
+          </div>
+
+          <p>Create a small link below</p>
+
+          <div class="w3-container w3-card-4 w3-light-gray rz-word-wrap" > 
+
+            <p>
+
+              <label  ><b>Your long URL:</b></label>
+
+              <label id="urlvalid" class="w3-hide"><b class="w3-text-green"> URL is valid!</b></label>
+              <label id="urlcheckvalidation" class="w3-hide"><b class="w3-text-amber"> Checking!</b></label>
+              <label id="urlnotvalid" class="w3-hide"><b class="w3-text-red"> URL is not valid!</b></label>
+              <input class="w3-input w3-border w3-card w3-pale-green" id="urlText" name="urlTextname" type="text" required
+                     placeholder="Enter or paste your long URL here" 
+                     onblur="queryUrl()"
+                     onkeydown="allHideUrl()"
+                     onfocus="allHideUrl()">
+            <p></p>
+
+            <label><b>Your preferred short URL:</b></label> 
+
+            <label id="preferredvalid" class="w3-hide"><b class="w3-text-green"> Preferred URL is available!</b></label>
+            <label id="preferredcheckvalidation" class="w3-hide"><b class="w3-text-amber"> Checking!</b></label>
+            <label id="preferrednotvalid" class="w3-hide"><b class="w3-text-red"> Preferred URL is already taken!</b></label>
+            <label id="preferredLengthnotvalid" class="w3-hide"><b class="w3-text-red"> Preferred URL should be 5 and 9 characters!</b></label>
+
+            <input class="w3-input w3-border w3-card w3-sand" id="preferredText" name="preferredTextname" type="text" maxlength="9"
+                   placeholder="Enter or paste your preferred short URL here" 
+                   onblur="queryPreferred()"
+                   onkeydown="allHidePreferred()"
+                   onfocus="allHidePreferred()">
+            <p></p>
+            <p><button title="When long URL is valid 
+                       and preferred URL 
+                       is also valid or empty, 
+                       this button will be active!" id="shrinkit"  
+                       class="w3-btn w3-card-2 w3-padding w3-blue w3-disabled" 
+                       style="width:120px" onclick="shrinkLink()">
+                Shrink it! &nbsp; &#10095;
+              </button> 
+              <b id = "calcDataHint" class="w3-red w3-hide"> Please correct or enter data inside yellow marked boxes and try again!</b>
+            </p>
+          </div>
+          <br>
+          <br>
+          <div class="w3-panel w3-leftbar w3-border-indigo w3-text-blue" id="view" style="margin-top:75px">
+            <h1 class="w3-xxlarge w3-text-indigo"><b>Result View</b></h1>
+          </div>
+
+          <div id = "resultViewBaisc" class = "<?php echo $_SESSION['default']['resultViewBaisc_visible']; ?> ">
+            <p><b>The Original (long) link:</b></p>
+            <div class="w3-panel w3-light-gray w3-card-4 rz-word-wrap" >
+              <p></p>
+              <b id="originalLinkText"><?php if(isset($_SESSION['default']['original_link'])) echo $_SESSION['default']['original_link']; else echo ""; ?></b>
+              <p></p>
+            </div>
+            <br>
+            <p><b>The Short link:</b></p>
+            <div class="w3-panel w3-light-gray w3-card-4" >
+              <p></p>
+              <b id="shortLinkText"><?php if(isset($_SESSION['default']['short_link'])) echo $_SESSION['default']['short_link']; else echo "NO SHORT LINK"; ?></b>
+              <p></p>
+
+            </div>
+            <br>
+            <div class="w3-card-4 w3-cell" >
+              <br>
+              <div id = "qrImageDiv" class="w3-center">
+
+                <img id="qrImageId" src="<?php echo Config::getSubDir(); ?>/utility/generateQR.php?codeQR=
+                     <?php if(isset($_SESSION['default']['short_link']))
+                     echo $_SESSION['default']['short_link'];
+                     else echo ''?>" 
+                     alt="ImageQR not loaded"  />
+              </div>              
+              <div class="w3-container w3-center">
+                <p>Scan QR Code for easy <br>accessing to short link</p>
+              </div>
+            </div> 
+          </div>
+
+          <div id = "resultViewExtended" class = "<?php echo $_SESSION['default']['resultViewExtended_visible']; ?>">
+            <p><b>Time of creation:</b></p>
+            <div class="w3-panel w3-light-gray w3-card-4" >
+              <p></p>
+              <b><?php if(isset($_SESSION['default']['Creation_date']))echo $_SESSION['default']['Creation_date']; else echo "|"; ?></b>
+              <p></p>
+            </div>
+            <p><b>Number of time used:</b></p>
+            <div class="w3-panel w3-light-gray w3-card-4" >
+              <p></p>
+              <b><?php if(isset($_SESSION['default']['hit_counter']))echo $_SESSION['default']['hit_counter']; else echo "|"; ?></b>
+              <p></p>
+
+            </div>
+          </div>
+
+          <div id = "resultViewError" class = "<?php echo $_SESSION['default']['tiny_link_error_visible']; ?>">
+            <p><b class = "w3-fo">We processed your request, and the result is:</b>
+            </p>
+
+
+            <div class="w3-panel w3-card-4 w3-yellow"><p>  
+              <p><b class = "w3-fo">The short link:<p>
+                  <div class="w3-panel w3-card-4 w3-red w3-xlarge"><p>          
+                      <?php if(isset($_SESSION['default']['short_link'])) echo $_SESSION['default']['short_link']; else echo ""; ?>
+                  </div>
+                  <p>does not exist!</b>
+              <p><p></div>
+
+          </div>
+
+        </div>
+        <!-- Designers -->
+        <div class="w3-container" id="designers" style="margin-top:75px">
+
+          <div class="w3-panel w3-leftbar w3-border-indigo w3-text-blue">
+            <h1 class="w3-xxlarge w3-text-indigo"><b>Design</b></h1>
+          </div>
+
+          <p>A small team in a very big world.</p>
+          <p>Designer &amp; Developer of this website: </p>
+
+        </div>
+
+        <!-- The Team -->
+        <div class="w3-col l5 s12 m7   w3-row-padding w3-grayscale" >
+          <div style="width:70%">
+            <img class="w3-buttont"  src="<?php echo Config::getResourceAddress('RS-113.png'); ?>" alt="Reza Saffarpour" style="width:100%">
+            <div class="w3-container w3-center">
+
+              <a href="https://www.linkedin.com/in/saffarpour" 
+                 class="w3-button w3-white w3-border w3-border-red w3-round-large" target="_blank">
+                <h4 class="w3-center">Reza Saffarpour</h4>
+              </a>
+            </div>
+          </div>
+          <p> 
+
+          <h2>Source Code</h2>
+          <p>
+            you can access the complete source code of this responsive website
+            is available for you.
+          <p></p>
+          <a href="https://github.com/saffarpour/tinylink" class="w3-button w3-card-4 w3-aqua" target="_blank">
+            Source Code on GitHub</a>
+
+          <p>I have developed this small website and API service for testing and training.
+            I Wish you enjoy using this website.</p>
+
+          <h2>Libraries</h2>
+          <p></p>
+          W3.CSS is small, fast and easy to use responsive framework.
+          <p></p>
+          <a href="https://www.w3schools.com/css/default.asp" class="w3-button w3-card-4 w3-yellow" target="_blank">Goto W3.CSS</a>
+
+          <p></p>
+          <p></p>
+          PHP QR Code is a good open source library for QR code generation in PHP available in sourceforge.
+          <p></p>
+
+          <a href="https://sourceforge.net/projects/phpqrcode/files/" class="w3-button w3-card-4 w3-yellow" target="_blank">PHP QR Code</a>
+
+        </div>
+
+        <!-- Contact -->
+        <div class="w3-container" id="contact">
+
+          <div class="w3-panel w3-leftbar w3-border-indigo w3-text-blue" style="margin-top:75px">
+            <h1 class="w3-xxlarge w3-text-indigo"><b>Contact</b></h1>
+          </div>
+
+          <p>Any comments or note? Please send an email to 
+            <a href="mailto:reza.elecbase@gmail.com">reza.elecbase@gmail.com</a>.</p>
+        </div>
+
+        <div class="w3-container" id="footer" style="margin-top:125px">
+          <div class="w3-display-container w3-text-white" >
+            <img src="<?php echo Config::getResourceAddress('Link_1-2-2.png'); ?>" alt="TINY LINK" style="width:100%">
+          </div>
+        </div>
+      </div>
+
+    </div>
+    <script>
+      function toggleToShow(elementId) {
+          document.getElementById(elementId).classList.remove("w3-hide");
+          document.getElementById(elementId).classList.add("w3-show");
+      }
+
+      function toggleToHide(elementId) {
+          document.getElementById(elementId).classList.remove("w3-show");
+          document.getElementById(elementId).classList.add("w3-hide");
+      }
+
+      function allHideUrl() {
+          document.getElementById("urlvalid").classList.remove("w3-show");
+          document.getElementById("urlnotvalid").classList.remove("w3-show");
+          document.getElementById("urlcheckvalidation").classList.remove("w3-show");
+          document.getElementById("urlvalid").classList.add("w3-hide");
+          document.getElementById("urlnotvalid").classList.add("w3-hide");
+          document.getElementById("urlcheckvalidation").classList.add("w3-hide");
+      }
+
+      function allHidePreferred() {
+          document.getElementById("preferredvalid").classList.remove("w3-show");
+          document.getElementById("preferrednotvalid").classList.remove("w3-show");
+          document.getElementById("preferredcheckvalidation").classList.remove("w3-show");
+          document.getElementById("preferredLengthnotvalid").classList.remove("w3-show");
+
+          document.getElementById("preferredvalid").classList.add("w3-hide");
+          document.getElementById("preferrednotvalid").classList.add("w3-hide");
+          document.getElementById("preferredcheckvalidation").classList.add("w3-hide");
+          document.getElementById("preferredLengthnotvalid").classList.add("w3-hide");
+      }
+
+      function  queryUrl() {
+          // 1- Check Data in not empty
+
+          var urlText = document.getElementById("urlText").value;
+
+          document.getElementById("urlcheckvalidation").classList.add("w3-show");
+
+          var subDir = "<?php echo Config::getSubDir();?>";
+          var apiUrl = subDir + "/index.php?job=VALIDATEURL&code=" + urlText;
+
+          // 2- Create xmlhttp object
+          if (window.XMLHttpRequest) {// code for IE7+, Firefox, Chrome, Opera, Safari
+              xmlhttp = new XMLHttpRequest();
+          } else {// code for IE6, IE5
+              xmlhttp = new ActiveXObject("Microsoft.XMLHTTP");
+          }
+
+          // 3- Setup return function
+          xmlhttp.onreadystatechange = function () {
+              if (xmlhttp.readyState === 4 && xmlhttp.status === 200) {
+                  toggleToHide("urlcheckvalidation");
+                  var checkUrlResponse = JSON.parse(this.responseText);
+
+                  if (checkUrlResponse.result === "NOT_VALID") {
+                      // Long URL is NOT valid
+                      allHideUrl();
+                      toggleToShow("urlnotvalid");
+                      document.getElementById("shrinkit").classList.remove("valid-url");
+                  } else {
+                      allHideUrl();
+                      toggleToShow("urlvalid");
+                      document.getElementById("shrinkit").classList.add("valid-url");
+                  }
+              }
+              ;
+              updateShrinkItButton();
+          };
+
+          // 4- Setup call function
+          xmlhttp.open("GET", apiUrl, true);
+          xmlhttp.send();
+      }
+
+      function queryPreferred() {
+
+          var preferredText = document.getElementById("preferredText").value;
+          // 1- Check Data in atleast 5 characters
+          if (preferredText.length === 0) {
+              document.getElementById("shrinkit").classList.add("valid-preferred-url");
+              updateShrinkItButton();
+              return;
+          }
+          if (preferredText.length < 5) {
+              allHidePreferred();
+              document.getElementById("preferredLengthnotvalid").classList.add("w3-show");
+              document.getElementById("shrinkit").classList.remove("valid-preferred-url");
+              updateShrinkItButton();
+              return;
+          }
+
+          var subDir = "<?php echo Config::getSubDir();?>";
+          var apiUrl = subDir + "/index.php?job=TINYLINK&code=" + preferredText;
+
+          // 2- Create xmlhttp object
+          if (window.XMLHttpRequest) {// code for IE7+, Firefox, Chrome, Opera, Safari
+              xmlhttp = new XMLHttpRequest();
+          } else {// code for IE6, IE5
+              xmlhttp = new ActiveXObject("Microsoft.XMLHTTP");
+          }
+
+          // 3- Setup return function
+          xmlhttp.onreadystatechange = function () {
+              if (xmlhttp.readyState === 4 && xmlhttp.status === 200) {
+                  toggleToHide("preferredcheckvalidation");
+
+                  var checkUrlResponse = JSON.parse(this.responseText);
+
+                  switch (checkUrlResponse.result) {
+                      case "false":
+                          //Selected Tiny_Link has NOT been used and is ready
+                          allHidePreferred();
+                          document.getElementById("shrinkit").classList.add("valid-preferred-url");
+                          toggleToShow("preferredvalid");
+                          break;
+                      case "true":
+                          //Selected Tiny_Link has BEEN used and is NOT ready
+                          allHidePreferred();
+                          document.getElementById("shrinkit").classList.remove("valid-preferred-url");
+                          toggleToShow("preferrednotvalid");
+                          break;
+                      default:
+                          //Selected Tiny_Link length is NOT valid
+                          allHidePreferred();
+                          document.getElementById("shrinkit").classList.remove("valid-preferred-url");
+                          toggleToShow("preferredLengthnotvalid");
+                  }
+              }
+              ;
+              updateShrinkItButton();
+          };
+
+          // 4- Setup call function
+          xmlhttp.open("GET", apiUrl, true);
+          xmlhttp.send();
+      }
+
+      function shrinkLink() {
+
+          // 1- Check Data is ready
+          if (document.getElementById("shrinkit").classList.contains("w3-disabled")) {
+              return;
+          }
+
+          var urlText = document.getElementById("urlText").value;
+          var preferredText = document.getElementById("preferredText").value;
+
+          var subDir = "<?php echo Config::getSubDir();?>";
+
+          var apiCommandText;
+          if (preferredText.length === 0) {
+              apiCommandText = subDir + "/index.php?job=INSERTRANDOMTINYLINK&longcode=" + urlText;
+          } else {
+              apiCommandText = subDir + "/index.php?job=INSERTTINYLINK&code=" + preferredText + "&longcode=" + urlText;
+          }
+
+          // 2- Create xmlhttp object
+          if (window.XMLHttpRequest) {// code for IE7+, Firefox, Chrome, Opera, Safari
+              xmlhttp = new XMLHttpRequest();
+          } else {// code for IE6, IE5
+              xmlhttp = new ActiveXObject("Microsoft.XMLHTTP");
+          }
+
+          // 3- Setup return function
+          xmlhttp.onreadystatechange = function () {
+              if (xmlhttp.readyState === 4 && xmlhttp.status === 200) {
+                  var checkInsertResponse = JSON.parse(this.responseText);
+                  switch (checkInsertResponse.result) {
+                      case "false":
+                          //Insert Error
+                          allHidePreferred();
+                          toggleToShow("preferrednotvalid");
+                          break;
+                      case "true":
+                          allHidePreferred();
+                          allHideUrl();
+                          document.getElementById("preferredText").value = "";
+                          document.getElementById("urlText").value = "";
+                          document.getElementById("resultViewBaisc").classList.remove("w3-hide");
+                          document.getElementById("resultViewBaisc").classList.add("w3-show");
+
+                          document.getElementById("resultViewExtended").classList.remove("w3-show");
+                          document.getElementById("resultViewExtended").classList.add("w3-hide");
+
+
+                          document.getElementById("shortLinkText").innerHTML = checkInsertResponse.short_link_address;
+                          document.getElementById("originalLinkText").innerHTML = urlText;
+
+                          document.getElementById("qrImageId").src = "<?php echo Config::getSubDir();?>/utility/generateQR.php?codeQR=" + checkInsertResponse.short_link_address;
+
+                          document.getElementById("resultViewError").classList.remove("w3-show");
+                          document.getElementById("resultViewError").classList.add("w3-hide");
+
+                          window.location.hash = "#view";
+                          break;
+
+                      default:
+                          allHidePreferred();
+                          toggleToShow("preferredLengthnotvalid");
+
+                  }
+              }
+              ;
+          };
+
+          // 4- Setup call function
+          xmlhttp.open("GET", apiCommandText, true);
+          xmlhttp.send();
+      }
+
+      function checkAllCodes() {
+          if (document.getElementById("urlText").value.length > 0) {
+              queryUrl();
+          }
+          queryPreferred();
+
+          var pageLocation = "<?php if(isset($_SESSION['default']['view_id']) && strlen($_SESSION['default']['view_id']) > 0){ echo ('#' . $_SESSION['default']['view_id']);} else {echo '';} ?>";
+          if (pageLocation.length > 0)
+              window.location.hash = pageLocation;
+      }
+
+      function updateShrinkItButton() {
+          if (document.getElementById("shrinkit").classList.contains("valid-preferred-url") &&
+                  document.getElementById("shrinkit").classList.contains("valid-url")) {
+              document.getElementById("shrinkit").classList.remove("w3-disabled");
+          } else {
+              document.getElementById("shrinkit").classList.add("w3-disabled");
+          }
+      }
+
+    </script>
+
+  </body>
+</html>
